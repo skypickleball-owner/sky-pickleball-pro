@@ -1,29 +1,29 @@
 "use client";
 
 import { useState, useEffect, useMemo } from "react";
+import dynamic from "next/dynamic";
 import { supabase } from "../../lib/supabase"; 
-import { CheckCircle, XCircle, MessageCircle, Lock, BarChart3, Wallet, Loader2, Trash2, Download, Search, TrendingUp, LogOut, Activity } from "lucide-react";
+import { CheckCircle, MessageCircle, Lock, BarChart3, Wallet, Loader2, Trash2, Download, Search, TrendingUp, LogOut, Activity } from "lucide-react";
 
-export default function AdminPage() {
-  const [mounted, setMounted] = useState(false);
+const AdminDashboard = () => {
+  const [isClient, setIsClient] = useState(false); // Jurus kunci
   const [isLoggedIn, setIsLoggedIn] = useState(false);
   const [password, setPassword] = useState("");
   const [bookings, setBookings] = useState<any[]>([]);
   const [searchTerm, setSearchTerm] = useState("");
   const [stats, setStats] = useState({ total: 0, income: 0 });
   const [isUpdating, setIsUpdating] = useState<string | null>(null);
-
-  // Inisialisasi kosong dulu untuk menghindari mismatch server-client
   const [selectedMonth, setSelectedMonth] = useState("");
   const [selectedYear, setSelectedYear] = useState("");
 
   const SECRET_PIN = "130675"; 
 
+  // Langkah 1: Pastikan mesin 'landing' sempurna di browser
   useEffect(() => {
-    setMounted(true);
-    // Set tanggal hanya di sisi client (browser)
-    setSelectedMonth((new Date().getMonth() + 1).toString().padStart(2, '0'));
-    setSelectedYear(new Date().getFullYear().toString());
+    setIsClient(true);
+    const now = new Date();
+    setSelectedMonth((now.getMonth() + 1).toString().padStart(2, '0'));
+    setSelectedYear(now.getFullYear().toString());
   }, []);
 
   const handleLogin = () => {
@@ -111,8 +111,8 @@ export default function AdminPage() {
     window.open(`https://wa.me/${waNumber}?text=${msg}`, "_blank");
   };
 
-  // Cegah render sebelum mounted untuk menghindari hydration error
-  if (!mounted) return null;
+  // JIKA BELUM CLIENT, TAMPILKAN LAYAR HITAM POLOS (MENGHINDARI ERROR)
+  if (!isClient) return <div className="min-h-screen bg-[#0F172A]" />;
 
   if (!isLoggedIn) {
     return (
@@ -239,4 +239,6 @@ export default function AdminPage() {
       </section>
     </main>
   );
-}
+};
+
+export default dynamic(() => Promise.resolve(AdminDashboard), { ssr: false });
