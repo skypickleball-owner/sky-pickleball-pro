@@ -2,7 +2,7 @@
 
 import { useState, useEffect, useMemo } from "react";
 import { supabase } from "../../lib/supabase"; 
-import { CheckCircle, XCircle, MessageCircle, Lock, BarChart3, Wallet, Loader2, Trash2, Download, Search, TrendingUp, LogOut } from "lucide-react";
+import { CheckCircle, XCircle, MessageCircle, Lock, BarChart3, Wallet, Loader2, Trash2, Download, Search, TrendingUp, LogOut, Activity } from "lucide-react";
 
 export default function AdminPage() {
   const [isLoggedIn, setIsLoggedIn] = useState(false);
@@ -67,8 +67,13 @@ export default function AdminPage() {
     const days = new Date(Number(selectedYear), Number(selectedMonth), 0).getDate();
     return Array.from({ length: days }, (_, i) => {
       const date = `${selectedYear}-${selectedMonth}-${(i + 1).toString().padStart(2, '0')}`;
-      const val = bookings.filter(b => b.status === 'confirmed' && b.booking_date === date).reduce((sum, b) => sum + b.total_price, 0);
-      return { day: i + 1, val };
+      const confirmedInDay = bookings.filter(b => b.status === 'confirmed' && b.booking_date === date);
+      const val = confirmedInDay.reduce((sum, b) => sum + b.total_price, 0);
+      
+      // Deteksi kategori dominan untuk warna bar chart
+      const isFutsalDominant = confirmedInDay.filter(b => b.courts?.name.includes('FUTSAL')).length > confirmedInDay.filter(b => !b.courts?.name.includes('FUTSAL')).length;
+
+      return { day: i + 1, val, isFutsal: isFutsalDominant };
     });
   }, [bookings, selectedMonth, selectedYear]);
 
@@ -90,10 +95,9 @@ export default function AdminPage() {
     link.click();
   };
 
-  // REVISI FINAL: PESAN WA KONFIRMASI LENGKAP
   const confirmToWA = (booking: any) => {
     const waNumber = booking.user_phone.replace(/^0/, '62');
-    const gmapsLink = "https://maps.app.goo.gl/cJZfpdYqBwp7J3EB9";
+    const gmapsLink = "https://maps.app.goo.gl/YourLink";
     const msg = `Halo ${booking.user_name}, Booking di *${booking.courts?.name}* dikonfirmasi!%0A%0A` +
                 `Jadwal: ${booking.booking_date}%0A` +
                 `Jam: ${booking.start_time.substring(0,5)} WIB%0A` +
@@ -119,14 +123,17 @@ export default function AdminPage() {
     <main className="min-h-screen bg-[#0F172A] text-slate-200 font-bold p-4 md:p-10 flex flex-col gap-10">
       <header className="flex flex-col xl:flex-row justify-between items-start xl:items-center gap-6 bg-[#1E293B] p-6 border-2 border-slate-700 shadow-xl relative text-center">
         <div className="space-y-4 w-full xl:w-auto">
-          <h1 className="text-3xl font-black uppercase tracking-tighter text-white italic underline decoration-[#F472B6]">COMMAND CENTER V2.4</h1>
+          <div className="flex items-center gap-2 justify-center xl:justify-start">
+             <Activity className="text-[#F472B6] animate-pulse" size={24} />
+             <h1 className="text-3xl font-black uppercase tracking-tighter text-white italic underline decoration-[#F472B6]">COMMAND CENTER V2.5</h1>
+          </div>
           <div className="relative group max-w-md mx-auto xl:mx-0">
             <Search className="absolute left-3 top-3 text-slate-500" size={20} />
-            <input type="text" placeholder="CARI NAMA..." value={searchTerm} onChange={(e) => setSearchTerm(e.target.value)} className="w-full bg-[#0F172A] border-2 border-slate-700 p-3 pl-12 outline-none text-white uppercase text-sm" />
+            <input type="text" placeholder="CARI NAMA..." value={searchTerm} onChange={(e) => setSearchTerm(e.target.value)} className="w-full bg-[#0F172A] border-2 border-slate-700 p-3 pl-12 outline-none text-white uppercase text-sm focus:border-[#38BDF8]" />
           </div>
         </div>
         <div className="flex flex-wrap gap-4 w-full xl:w-auto justify-center xl:justify-end">
-          <div className="bg-[#0F172A] p-4 border-2 border-slate-700 flex items-center gap-4 min-w-[200px]">
+          <div className="bg-[#0F172A] p-4 border-2 border-slate-700 flex items-center gap-4 min-w-[200px] shadow-[4px_4px_0px_0px_rgba(74,222,128,1)]">
             <Wallet className="text-[#4ADE80]" />
             <div>
               <p className="text-[10px] text-slate-500 uppercase font-black italic">Confirmed Omzet</p>
@@ -152,49 +159,72 @@ export default function AdminPage() {
           <thead>
             <tr className="bg-[#0F172A] text-slate-400 uppercase text-[10px] tracking-[0.2em] italic">
               <th className="p-4 border-b border-slate-700">Customer / Schedule</th>
-              <th className="p-4 border-b border-slate-700">Unit</th>
+              <th className="p-4 border-b border-slate-700">Unit Type</th>
               <th className="p-4 border-b border-slate-700 text-center">Receipt</th>
               <th className="p-4 border-b border-slate-700">Status</th>
               <th className="p-4 border-b border-slate-700 text-right">Nav</th>
             </tr>
           </thead>
           <tbody>
-            {bookings.filter(b => b.user_name.toLowerCase().includes(searchTerm.toLowerCase())).map((b) => (
-              <tr key={b.id} className="border-b border-slate-800 hover:bg-[#253145] transition-colors group">
-                <td className="p-4 text-white font-black uppercase tracking-tight">
-                    <span className="text-[#F472B6]">{b.user_name}</span>
-                    <div className="text-[10px] text-[#FDE047] font-mono mt-1 uppercase italic">{b.booking_date} | {b.start_time.substring(0,5)} WIB</div>
-                </td>
-                <td className="p-4 uppercase"><span className={`px-2 py-1 text-[10px] rounded border border-current font-black ${b.courts?.name.includes('FUTSAL') ? 'text-blue-400' : 'text-pink-400'}`}>{b.courts?.name}</span></td>
-                <td className="p-4 text-center"><a href={b.receipt_url} target="_blank" className="text-[#38BDF8] hover:underline text-[10px] font-black uppercase italic">CHECK PHOTO</a></td>
-                <td className="p-4 uppercase text-[10px] font-black italic"><div className={b.status === 'confirmed' ? 'text-[#4ADE80]' : b.status === 'cancelled' ? 'text-red-500' : 'text-[#FDE047]'}>● {b.status}</div></td>
-                <td className="p-4 text-right">
-                  <div className="flex justify-end gap-3">
-                    {isUpdating === b.id ? <Loader2 className="animate-spin text-white" size={20} /> : (
-                        <>
-                        <button onClick={() => updateStatus(b.id, 'confirmed')} className="text-[#4ADE80] hover:scale-125 transition-transform"><CheckCircle size={22}/></button>
-                        <button onClick={() => confirmToWA(b)} className="text-[#25D366] hover:scale-125 transition-transform"><MessageCircle size={22}/></button>
-                        <button onClick={() => deleteSingle(b.id)} className="text-red-500 hover:scale-125 transition-transform"><Trash2 size={22}/></button>
-                        </>
-                    )}
-                  </div>
-                </td>
-              </tr>
-            ))}
+            {bookings.filter(b => b.user_name.toLowerCase().includes(searchTerm.toLowerCase())).map((b) => {
+              const isFutsal = b.courts?.name.includes('FUTSAL');
+              return (
+                <tr key={b.id} className={`border-b border-slate-800 transition-colors group ${isFutsal ? 'hover:bg-yellow-400/5' : 'hover:bg-blue-400/5'}`}>
+                  <td className="p-4 text-white font-black uppercase tracking-tight">
+                      <span className={isFutsal ? 'text-[#FDE047]' : 'text-[#38BDF8]'}>{b.user_name}</span>
+                      <div className="text-[10px] text-slate-500 font-mono mt-1 uppercase italic">{b.booking_date} | {b.start_time.substring(0,5)} WIB</div>
+                  </td>
+                  <td className="p-4 uppercase">
+                    <span className={`px-3 py-1 text-[10px] rounded-full border-2 font-black shadow-sm ${isFutsal ? 'text-[#FDE047] border-[#FDE047] bg-[#FDE047]/10' : 'text-[#38BDF8] border-[#38BDF8] bg-[#38BDF8]/10'}`}>
+                      {b.courts?.name}
+                    </span>
+                  </td>
+                  <td className="p-4 text-center"><a href={b.receipt_url} target="_blank" className="text-slate-400 hover:text-white text-[10px] font-black uppercase italic underline decoration-[#F472B6]">VIEW PROOF</a></td>
+                  <td className="p-4 uppercase text-[10px] font-black italic">
+                    <div className={b.status === 'confirmed' ? 'text-[#4ADE80]' : b.status === 'cancelled' ? 'text-red-500' : 'text-[#FDE047]'}>
+                      <span className="animate-pulse mr-1">●</span> {b.status}
+                    </div>
+                  </td>
+                  <td className="p-4 text-right">
+                    <div className="flex justify-end gap-3 opacity-0 group-hover:opacity-100 transition-opacity">
+                      {isUpdating === b.id ? <Loader2 className="animate-spin text-white" size={20} /> : (
+                          <>
+                          <button onClick={() => updateStatus(b.id, 'confirmed')} className="text-[#4ADE80] hover:scale-125 transition-transform" title="Confirm"><CheckCircle size={22}/></button>
+                          <button onClick={() => confirmToWA(b)} className="text-[#25D366] hover:scale-125 transition-transform" title="Send WA"><MessageCircle size={22}/></button>
+                          <button onClick={() => deleteSingle(b.id)} className="text-red-500 hover:scale-125 transition-transform" title="Delete"><Trash2 size={22}/></button>
+                          </>
+                      )}
+                    </div>
+                  </td>
+                </tr>
+              )
+            })}
           </tbody>
         </table>
       </section>
 
-      <section className="bg-[#1E293B] border-2 border-slate-700 p-8 shadow-xl mb-10 italic">
-        <div className="flex items-center gap-3 mb-8 border-b-2 border-slate-700 pb-4 uppercase">
-            <TrendingUp className="text-[#4ADE80]" size={28} />
-            <h2 className="text-2xl font-black tracking-tighter text-white">Monthly Revenue Trend</h2>
+      <section className="bg-[#1E293B] border-2 border-slate-700 p-8 shadow-xl mb-10 italic relative overflow-hidden">
+        <div className="absolute top-0 right-0 p-4 opacity-10">
+           <BarChart3 size={120} />
         </div>
-        <div className="h-64 flex items-end gap-[4px] md:gap-[8px]">
+        <div className="flex items-center gap-3 mb-8 border-b-2 border-slate-700 pb-4 uppercase relative z-10">
+            <TrendingUp className="text-[#4ADE80]" size={28} />
+            <h2 className="text-2xl font-black tracking-tighter text-white">Monthly Revenue Mix</h2>
+            <div className="ml-auto flex gap-4 text-[10px] font-black uppercase italic">
+               <span className="flex items-center gap-1 text-[#38BDF8]"><span className="w-2 h-2 bg-[#38BDF8] rounded-full"></span> Pickleball</span>
+               <span className="flex items-center gap-1 text-[#FDE047]"><span className="w-2 h-2 bg-[#FDE047] rounded-full"></span> Futsal</span>
+            </div>
+        </div>
+        <div className="h-64 flex items-end gap-[4px] md:gap-[8px] relative z-10">
             {chartData.map((d, i) => (
                 <div key={i} className="flex-1 group relative h-full flex items-end">
-                    <div className="w-full bg-[#4ADE80] rounded-t-sm" style={{ height: `${(d.val / maxVal) * 100}%`, minHeight: '2px' }}></div>
-                    <div className="absolute -top-12 left-1/2 -translate-x-1/2 bg-[#4ADE80] text-black text-[10px] px-2 py-1 rounded font-black opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap z-50 shadow-2xl uppercase text-center border border-black">Tgl {d.day}: Rp {d.val.toLocaleString('id-ID')}</div>
+                    <div 
+                      className={`w-full rounded-t-sm transition-all duration-500 group-hover:brightness-125 ${d.isFutsal ? 'bg-[#FDE047]' : 'bg-[#38BDF8]'}`} 
+                      style={{ height: `${(d.val / maxVal) * 100}%`, minHeight: '4px' }}
+                    ></div>
+                    <div className={`absolute -top-12 left-1/2 -translate-x-1/2 text-black text-[10px] px-2 py-1 rounded font-black opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap z-50 shadow-2xl uppercase text-center border border-black ${d.isFutsal ? 'bg-[#FDE047]' : 'bg-[#38BDF8]'}`}>
+                      Tgl {d.day}: Rp {d.val.toLocaleString('id-ID')}
+                    </div>
                 </div>
             ))}
         </div>
