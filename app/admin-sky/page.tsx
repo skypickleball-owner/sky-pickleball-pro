@@ -6,7 +6,7 @@ import { supabase } from "../../lib/supabase";
 import { CheckCircle, MessageCircle, Lock, BarChart3, Wallet, Loader2, Trash2, Download, Search, TrendingUp, LogOut, Activity } from "lucide-react";
 
 const AdminDashboard = () => {
-  const [isClient, setIsClient] = useState(false); // Jurus kunci
+  const [isClient, setIsClient] = useState(false);
   const [isLoggedIn, setIsLoggedIn] = useState(false);
   const [password, setPassword] = useState("");
   const [bookings, setBookings] = useState<any[]>([]);
@@ -16,9 +16,16 @@ const AdminDashboard = () => {
   const [selectedMonth, setSelectedMonth] = useState("");
   const [selectedYear, setSelectedYear] = useState("");
 
-  const SECRET_PIN = "130675"; 
+  // DATA PAKET ADMIN - FIX: Tanda petik sudah dipasang sempurna
+  const ADMIN_CONFIG = {
+    adminPass: '130675',
+    bankName: 'BANK BCA',
+    bankAccount: '4585573541',
+    accountName: 'Dinah Patricia',
+    waAdmin: '6289616265702',
+    mapsLink: 'https://maps.app.goo.gl/cJZfpdYqBwp7J3EB9'
+  };
 
-  // Langkah 1: Pastikan mesin 'landing' sempurna di browser
   useEffect(() => {
     setIsClient(true);
     const now = new Date();
@@ -27,7 +34,7 @@ const AdminDashboard = () => {
   }, []);
 
   const handleLogin = () => {
-    if (password === SECRET_PIN) setIsLoggedIn(true);
+    if (password === ADMIN_CONFIG.adminPass) setIsLoggedIn(true);
     else alert("PIN SALAH, DOK!");
   };
 
@@ -103,15 +110,15 @@ const AdminDashboard = () => {
   };
 
   const confirmToWA = (booking: any) => {
-    const waNumber = booking.user_phone.replace(/^0/, '62');
-    const msg = `Halo ${booking.user_name}, Booking di *${booking.courts?.name}* dikonfirmasi!%0A%0A` +
-                `Jadwal: ${booking.booking_date}%0A` +
-                `Jam: ${booking.start_time.substring(0,5)} WIB%0A` +
-                `TERIMA KASIH!`;
+    const waNumber = booking.user_phone.replace(/^0/, '62').replace(/\D/g, '');
+    const msg = `Halo *${booking.user_name}*, Booking di *${booking.courts?.name}* dikonfirmasi! ✅%0A%0A` +
+                `📅 *Jadwal:* ${booking.booking_date}%0A` +
+                `⏰ *Jam:* ${booking.start_time.substring(0,5)} WIB%0A%0A` +
+                `📍 *Lokasi Lapangan:* ${ADMIN_CONFIG.mapsLink}%0A%0A` +
+                `Sampai jumpa di lapangan, TERIMA KASIH! 🙏`;
     window.open(`https://wa.me/${waNumber}?text=${msg}`, "_blank");
   };
 
-  // JIKA BELUM CLIENT, TAMPILKAN LAYAR HITAM POLOS (MENGHINDARI ERROR)
   if (!isClient) return <div className="min-h-screen bg-[#0F172A]" />;
 
   if (!isLoggedIn) {
