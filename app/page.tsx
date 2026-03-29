@@ -2,7 +2,7 @@
 
 import { useState, useEffect, useRef } from "react";
 import { supabase } from "../lib/supabase";
-import { Navigation, Zap, Hourglass, CheckCircle, ArrowLeft, AlertCircle } from "lucide-react";
+import { Navigation, Zap, Hourglass, CheckCircle, ArrowLeft, AlertCircle, MapPin } from "lucide-react";
 import Image from "next/image";
 
 export default function Home() {
@@ -29,7 +29,6 @@ export default function Home() {
         if (error) {
           console.error("❌ GAGAL AMBIL UNIT:", error.message);
         } else {
-          console.log("✅ UNIT BERHASIL DIMUAT:", data?.length, "Unit ditemukan");
           setCourts(data || []);
         }
       } catch (err) {
@@ -39,7 +38,7 @@ export default function Home() {
     fetchCourts();
   }, []);
 
-  // 2. TIMER BOOKING
+  // 2. TIMER BOOKING (SULTAN TIME)
   useEffect(() => {
     if (selectedCourt) {
       setTimeLeft(3600);
@@ -127,7 +126,6 @@ export default function Home() {
       if (dbError) throw dbError;
 
       await sendTelegramAlert(newBooking);
-
       setSavedBooking(newBooking);
       setIsSuccess(true);
     } catch (err: any) {
@@ -142,7 +140,7 @@ export default function Home() {
       <main className="min-h-screen bg-[#EAB308] flex items-center justify-center p-4 font-bold">
         <div className="bg-white border-8 border-black p-8 shadow-[15px_15px_0px_0px_black] text-center max-w-lg w-full">
           <CheckCircle size={80} className="mx-auto mb-4 text-green-500" />
-          <h1 className="text-4xl font-black mb-4 uppercase italic">MANTEP DOK!</h1>
+          <h1 className="text-3xl md:text-4xl font-black mb-4 uppercase italic">MANTEP DOK!</h1>
           <p className="mb-6 uppercase text-xs text-black">Radar Admin sudah berbunyi.<br/>Silakan lapor via WA untuk aktivasi jadwal Anda.</p>
           <div className="space-y-4">
             <button onClick={() => window.open(`https://wa.me/6289616265702?text=KONFIRMASI%20BOOKING%20SKY:%20${savedBooking.user_name}`, "_blank")} className="bg-[#25D366] text-white p-5 w-full text-xl font-black uppercase shadow-[6px_6px_0px_0px_black] active:translate-y-1 transition-all">LAPOR KE ADMIN (WA)</button>
@@ -157,40 +155,46 @@ export default function Home() {
 
   return (
     <main className="min-h-screen bg-[#EAB308] text-black font-bold pb-10 overflow-x-hidden flex flex-col">
-      <header className="relative min-h-[400px] flex items-center justify-center border-b-[10px] border-black p-6">
+      {/* HEADER OPTIMIZED */}
+      <header className="relative min-h-[450px] flex items-center justify-center border-b-[10px] border-black p-6">
         <Image src="/header-bg.jpg" alt="Court" fill className="object-cover brightness-[0.25]" priority />
         <div className="relative z-10 w-full max-w-6xl flex flex-col md:flex-row justify-between items-center gap-8 text-white">
-          <a href="https://maps.app.goo.gl/cJZfpdYqBwp7J3EB9" target="_blank" className="bg-[#FDE047] border-4 border-black p-3 shadow-[6px_6px_0px_0px_black] hover:rotate-3 transition-transform text-black">
-            <Navigation size={32} />
-            <p className="text-[10px] font-black uppercase text-center">CEK LOKASI</p>
+          
+          {/* UPDATED G-MAPS LINK */}
+          <a href="https://maps.app.goo.gl/YayFKRZKqfwzWTTk7" target="_blank" rel="noopener noreferrer" className="bg-[#FDE047] border-4 border-black p-4 shadow-[6px_6px_0px_0px_black] hover:rotate-3 transition-transform text-black flex flex-col items-center group">
+            <Navigation size={40} className="group-hover:animate-bounce" />
+            <p className="text-[12px] font-black uppercase mt-1">LOKASI CIATER</p>
           </a>
+
           <div className="flex flex-col items-center">
              <div className="bg-[#F472B6] border-2 border-black px-4 py-1 mb-4 shadow-[4px_4px_0px_0px_black] -rotate-1">
                 <p className="text-sm md:text-xl font-black uppercase text-white italic tracking-widest">#1 Family Sportainment</p>
              </div>
-             <h1 className="text-5xl md:text-7xl font-black uppercase italic text-center drop-shadow-[6px_6px_0px_rgba(0,0,0,1)]">
+             <h1 className="text-5xl md:text-7xl font-black uppercase italic text-center drop-shadow-[6px_6px_0px_rgba(0,0,0,1)] leading-tight">
                <span className="text-[#38BDF8]">Dad's Hero,</span><br/>
                <span className="text-[#F472B6]">Mom's Glows,</span><br/>
                <span className="text-[#4ADE80]">Kid's Happy</span>
              </h1>
           </div>
-          <div className="bg-[#F472B6] border-4 border-black p-2 shadow-[6px_6px_0px_0px_black] rotate-3">
-            <div className="relative w-20 h-20 bg-white border-2 border-black">
+
+          <div className="bg-[#F472B6] border-4 border-black p-2 shadow-[6px_6px_0px_0px_black] rotate-3 hidden md:block">
+            <div className="relative w-24 h-24 bg-white border-2 border-black">
               <Image src="/qr-ig.png" alt="QR" fill className="p-1 object-contain" />
             </div>
           </div>
         </div>
       </header>
 
-      <div className="max-w-6xl mx-auto grid grid-cols-1 lg:grid-cols-3 gap-8 mt-12 px-4 flex-grow">
+      <div className="max-w-6xl mx-auto grid grid-cols-1 lg:grid-cols-3 gap-8 mt-8 md:mt-12 px-4 flex-grow">
         <div className="lg:col-span-2 space-y-10">
+          
+          {/* STEP 1: PILIH LAPANGAN */}
           <section className="bg-white border-4 border-black p-6 shadow-[10px_10px_0px_0px_black]">
             <div className="flex items-center gap-3 mb-8 bg-black text-[#FDE047] p-3 border-4 border-black inline-flex transform -rotate-1">
               <Zap size={28} />
               <h2 className="text-2xl uppercase font-black tracking-tighter">1. Pilih Lapangan</h2>
             </div>
             
-            {/* TAMPILAN PILIHAN UNIT */}
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
               {courts.length > 0 ? courts.map((court) => {
                 const bgImg = court.name.toLowerCase().includes('futsal 1') ? '/futsal1.jpg' : 
@@ -208,56 +212,64 @@ export default function Home() {
                   </button>
                 )
               }) : (
-                <div className="col-span-2 flex flex-col items-center py-10 text-red-600 bg-red-50 border-2 border-dashed border-red-200">
+                <div className="col-span-2 flex flex-col items-center py-10 text-red-600 bg-red-50 border-2 border-dashed border-red-200 uppercase">
                   <AlertCircle size={40} className="mb-2" />
-                  <p className="font-black italic uppercase">DATA UNIT KOSONG / ERROR KONEKSI!</p>
-                  <p className="text-[10px] mt-1 text-black">Cek Terminal VS Code atau koneksi Supabase Anda.</p>
+                  <p className="font-black italic">DATA UNIT ERROR KONEKSI!</p>
                 </div>
               )}
             </div>
           </section>
 
+          {/* STEP 2: DATA & JADWAL */}
           <section className="bg-white border-4 border-black p-6 shadow-[10px_10px_0px_0px_black] grid grid-cols-1 md:grid-cols-2 gap-8">
              <div className="space-y-4">
                 <h3 className="text-lg uppercase font-black border-b-4 border-pink-500 inline-block mb-2 italic tracking-wider">Jadwal & Durasi</h3>
-                <input type="date" value={selectedDate} onChange={(e) => setSelectedDate(e.target.value)} className="w-full p-4 border-4 border-black bg-[#FDE047] font-black outline-none" />
+                <input type="date" value={selectedDate} onChange={(e) => setSelectedDate(e.target.value)} className="w-full p-4 border-4 border-black bg-[#FDE047] font-black outline-none text-base" />
                 <div className="flex gap-2 font-black">
-                  <select value={selectedTime} onChange={(e) => setSelectedTime(e.target.value)} className="flex-1 p-4 border-4 border-black bg-white outline-none">
+                  <select value={selectedTime} onChange={(e) => setSelectedTime(e.target.value)} className="flex-1 p-4 border-4 border-black bg-white outline-none text-base">
                     <option value="">JAM MULAI</option>
                     {Array.from({ length: 16 }, (_, i) => `${(i + 7).toString().padStart(2, "0")}:00`).map(slot => <option key={slot} value={slot}>{slot} WIB</option>)}
                   </select>
-                  <select value={duration} onChange={(e) => setDuration(Number(e.target.value))} className="w-24 p-4 border-4 border-black bg-white outline-none">
+                  <select value={duration} onChange={(e) => setDuration(Number(e.target.value))} className="w-24 p-4 border-4 border-black bg-white outline-none text-base">
                     {[1,2,3,4].map(h => <option key={h} value={h}>{h} Jam</option>)}
                   </select>
                 </div>
              </div>
              <div className="space-y-4 font-black uppercase">
                 <h3 className="text-lg uppercase font-black border-b-4 border-[#38BDF8] inline-block mb-2 italic">Biodata</h3>
-                <input placeholder="NAMA LENGKAP" value={custName} onChange={(e)=>setCustName(e.target.value.toUpperCase())} className="w-full p-4 border-4 border-black outline-none focus:bg-white" />
-                <input placeholder="NOMOR WA" type="tel" value={custWA} onChange={(e)=>setCustWA(e.target.value)} className="w-full p-4 border-4 border-black outline-none focus:bg-white" />
+                <input placeholder="NAMA LENGKAP" value={custName} onChange={(e)=>setCustName(e.target.value.toUpperCase())} className="w-full p-4 border-4 border-black outline-none focus:bg-white text-base" />
+                <input placeholder="NOMOR WA" type="tel" value={custWA} onChange={(e)=>setCustWA(e.target.value)} className="w-full p-4 border-4 border-black outline-none focus:bg-white text-base" />
              </div>
           </section>
         </div>
 
+        {/* ASIDE: SUMMARY (MOBILE FRIENDLY POSITIONING) */}
         <aside className="lg:col-span-1">
           <div className="bg-[#F472B6] border-8 border-black p-6 shadow-[12px_12px_0px_0px_black] sticky top-6">
-            <h2 className="text-3xl font-black uppercase mb-2 border-b-4 border-black pb-2 italic">Ringkasan</h2>
+            <h2 className="text-3xl font-black uppercase mb-2 border-b-4 border-black pb-2 italic text-white">Ringkasan</h2>
             {selectedCourt ? (
               <div className="space-y-6">
                 <div className="bg-white border-4 border-black p-2 flex items-center justify-center gap-3 animate-pulse">
-                  <Hourglass className="text-red-600" size={20} />
-                  <p className="text-xl font-black font-mono">TIMER: {Math.floor(timeLeft/60).toString().padStart(2,'0')}:{(timeLeft%60).toString().padStart(2,'0')}</p>
+                  <Hourglass className="text-red-600" size={24} />
+                  <p className="text-xl md:text-2xl font-black font-mono">TIMER: {Math.floor(timeLeft/60).toString().padStart(2,'0')}:{(timeLeft%60).toString().padStart(2,'0')}</p>
                 </div>
-                <p className="text-4xl font-black uppercase italic tracking-tighter drop-shadow-[2px_2px_0px_rgba(255,255,255,1)]">{selectedCourt.name}</p>
+                
+                <p className="text-4xl font-black uppercase italic tracking-tighter text-white drop-shadow-[3px_3px_0px_rgba(0,0,0,1)]">{selectedCourt.name}</p>
+                
                 <div className="bg-white p-4 border-4 border-black shadow-[4px_4px_0px_black]">
-                    <p className="text-[9px] uppercase font-black mb-1 underline text-blue-600 italic tracking-tighter">TRANSFER: BANK BCA - 4585573541 a/n DINAH PATRICIA</p>
-                    <input type="file" accept="image/*" onChange={(e) => setReceiptFile(e.target.files ? e.target.files[0] : null)} className="w-full text-[10px] font-black file:bg-[#4ADE80] file:border-black file:border-2" />
+                    <p className="text-[11px] uppercase font-black mb-2 text-blue-700 italic border-b-2 border-blue-100 pb-1">
+                      🏧 TRANSFER: BCA - 4970537771 a/n DINAH PATRICIA
+                    </p>
+                    <label className="text-[10px] uppercase font-black block mb-1 tracking-tighter">Upload Bukti Bayar:</label>
+                    <input type="file" accept="image/*" onChange={(e) => setReceiptFile(e.target.files ? e.target.files[0] : null)} className="w-full text-[10px] font-black file:bg-[#4ADE80] file:border-black file:border-2 file:px-2 file:py-1 file:mr-2" />
                 </div>
-                <div className="bg-black text-[#FDE047] p-4 border-4 border-white transform -rotate-2 shadow-xl border-4 border-black">
-                  <p className="text-[10px] uppercase mb-1 font-black text-white">Total ({duration} Jam):</p>
+
+                <div className="bg-black text-[#FDE047] p-4 border-4 border-white transform -rotate-2 shadow-xl">
+                  <p className="text-[10px] uppercase mb-1 font-black text-white italic">Total ({duration} Jam):</p>
                   <p className="text-4xl font-black text-center italic">Rp {totalPrice.toLocaleString('id-ID')}</p>
                 </div>
-                <button onClick={handleBooking} disabled={isSubmitting} className="w-full bg-[#4ADE80] text-black border-4 border-black p-5 text-2xl font-black uppercase shadow-[8px_8px_0px_0px_black] active:translate-y-1 active:shadow-none transition-all">
+
+                <button onClick={handleBooking} disabled={isSubmitting} className="w-full bg-[#4ADE80] text-black border-4 border-black p-5 text-2xl font-black uppercase shadow-[8px_8px_0px_0px_black] active:translate-y-1 active:shadow-none transition-all hover:bg-[#22c55e]">
                   {isSubmitting ? "SABAR DOK..." : "BOOKING SEKARANG!"}
                 </button>
               </div>
@@ -270,6 +282,7 @@ export default function Home() {
 
       <footer className="mt-20 py-8 bg-black text-white border-t-8 border-black text-center">
          <p className="text-lg md:text-2xl font-black uppercase tracking-[0.2em] italic">SKY PICKLEBALL & FUTSAL SYSTEM</p>
+         <p className="text-[10px] mt-2 opacity-50 uppercase tracking-widest">© 2026 BSD CITY ELITE NETWORK</p>
       </footer>
     </main>
   );

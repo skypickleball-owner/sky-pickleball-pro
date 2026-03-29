@@ -16,14 +16,14 @@ const AdminDashboard = () => {
   const [selectedMonth, setSelectedMonth] = useState("");
   const [selectedYear, setSelectedYear] = useState("");
 
-  // DATA PAKET ADMIN - FIX: Tanda petik sudah dipasang sempurna
+  // DATA PAKET ADMIN - UPDATED "SAPU BERSIH"
   const ADMIN_CONFIG = {
     adminPass: '130675',
     bankName: 'BANK BCA',
-    bankAccount: '4585573541',
+    bankAccount: '4970537771', // UPDATE: REKENING BARU SULTAN
     accountName: 'Dinah Patricia',
     waAdmin: '6289616265702',
-    mapsLink: 'https://maps.app.goo.gl/cJZfpdYqBwp7J3EB9'
+    mapsLink: 'https://maps.app.goo.gl/YayFKRZKqfwzWTTk7' // UPDATE: LOKASI RESMI CIATER
   };
 
   useEffect(() => {
@@ -49,13 +49,23 @@ const AdminDashboard = () => {
 
   async function fetchBookings() {
     try {
-      const { data, error } = await supabase.from("bookings").select(`*, courts(name, price_weekday, price_weekend)`).order('created_at', { ascending: false });
+      const { data, error } = await supabase
+        .from("bookings")
+        .select(`*, courts(name, price_weekday, price_weekend)`)
+        .order('created_at', { ascending: false });
+      
       if (error) throw error;
+
       const filtered = data?.filter(b => b.booking_date.startsWith(`${selectedYear}-${selectedMonth}`)) || [];
-      const income = filtered.filter(b => b.status === 'confirmed').reduce((acc, curr) => acc + curr.total_price, 0) || 0;
+      const income = filtered
+        .filter(b => b.status === 'confirmed')
+        .reduce((acc, curr) => acc + curr.total_price, 0) || 0;
+
       setBookings(data || []);
       setStats({ total: filtered.length, income });
-    } catch (err: any) { console.error(err.message); }
+    } catch (err: any) { 
+      console.error(err.message); 
+    }
   }
 
   const updateStatus = async (id: string, status: string) => {
@@ -128,7 +138,7 @@ const AdminDashboard = () => {
           <Lock size={48} className="mx-auto mb-6 text-[#FDE047]" />
           <h1 className="text-2xl font-black mb-6 uppercase text-white tracking-widest italic">SKY ADMIN</h1>
           <input type="password" maxLength={6} placeholder="PIN" className="w-full p-4 border-2 border-slate-700 text-center text-3xl font-black mb-6 bg-[#0F172A] text-[#FDE047] outline-none focus:border-[#F472B6]" onChange={(e) => setPassword(e.target.value)} onKeyDown={(e) => e.key === 'Enter' && handleLogin()} />
-          <button onClick={handleLogin} className="w-full bg-[#F472B6] text-black p-4 text-xl font-black uppercase">ENTER</button>
+          <button onClick={handleLogin} className="w-full bg-[#F472B6] text-black p-4 text-xl font-black uppercase shadow-[4px_4px_0px_0px_white]">ENTER</button>
         </div>
       </main>
     );
@@ -136,7 +146,7 @@ const AdminDashboard = () => {
 
   return (
     <main className="min-h-screen bg-[#0F172A] text-slate-200 font-bold p-4 md:p-10 flex flex-col gap-10">
-      <header className="flex flex-col xl:flex-row justify-between items-start xl:items-center gap-6 bg-[#1E293B] p-6 border-2 border-slate-700 shadow-xl relative text-center">
+      <header className="flex flex-col xl:flex-row justify-between items-start xl:items-center gap-6 bg-[#1E293B] p-6 border-2 border-slate-700 shadow-xl relative">
         <div className="space-y-4 w-full xl:w-auto">
           <div className="flex items-center gap-2 justify-center xl:justify-start">
              <Activity className="text-[#F472B6] animate-pulse" size={24} />
@@ -157,8 +167,12 @@ const AdminDashboard = () => {
           </div>
           <div className="flex flex-col gap-2 items-center xl:items-end">
             <div className="flex gap-1">
-                <select value={selectedMonth} onChange={(e)=>setSelectedMonth(e.target.value)} className="bg-slate-800 border p-2 text-[10px] rounded text-white font-black">{["01","02","03","04","05","06","07","08","09","10","11","12"].map(m => <option key={m} value={m}>Bln {m}</option>)}</select>
-                <select value={selectedYear} onChange={(e)=>setSelectedYear(e.target.value)} className="bg-slate-800 border p-2 text-[10px] rounded text-white font-black">{["2024","2025","2026"].map(y => <option key={y} value={y}>{y}</option>)}</select>
+                <select value={selectedMonth} onChange={(e)=>setSelectedMonth(e.target.value)} className="bg-slate-800 border p-2 text-[10px] rounded text-white font-black">
+                  {["01","02","03","04","05","06","07","08","09","10","11","12"].map(m => <option key={m} value={m}>Bln {m}</option>)}
+                </select>
+                <select value={selectedYear} onChange={(e)=>setSelectedYear(e.target.value)} className="bg-slate-800 border p-2 text-[10px] rounded text-white font-black">
+                  {["2024","2025","2026"].map(y => <option key={y} value={y}>{y}</option>)}
+                </select>
                 <button onClick={handleLogout} className="bg-red-900/40 text-red-500 p-2 rounded border border-red-900" title="LOG OUT"><LogOut size={16} /></button>
             </div>
             <div className="flex gap-2">
@@ -181,38 +195,42 @@ const AdminDashboard = () => {
             </tr>
           </thead>
           <tbody>
-            {bookings.filter(b => b.user_name.toLowerCase().includes(searchTerm.toLowerCase())).map((b) => {
-              const isFutsal = b.courts?.name.includes('FUTSAL');
-              return (
-                <tr key={b.id} className={`border-b border-slate-800 transition-colors group ${isFutsal ? 'hover:bg-yellow-400/5' : 'hover:bg-blue-400/5'}`}>
-                  <td className="p-4 text-white font-black uppercase tracking-tight">
-                      <span className={isFutsal ? 'text-[#FDE047]' : 'text-[#38BDF8]'}>{b.user_name}</span>
-                      <div className="text-[10px] text-slate-500 font-mono mt-1 uppercase italic">{b.booking_date} | {b.start_time.substring(0,5)} WIB</div>
-                  </td>
-                  <td className="p-4 uppercase">
-                    <span className={`px-3 py-1 text-[10px] rounded-full border-2 font-black shadow-sm ${isFutsal ? 'text-[#FDE047] border-[#FDE047] bg-[#FDE047]/10' : 'text-[#38BDF8] border-[#38BDF8] bg-[#38BDF8]/10'}`}>
-                      {b.courts?.name}
-                    </span>
-                  </td>
-                  <td className="p-4 text-center"><a href={b.receipt_url} target="_blank" className="text-slate-400 hover:text-white text-[10px] font-black uppercase italic underline decoration-[#F472B6]">VIEW PROOF</a></td>
-                  <td className="p-4 uppercase text-[10px] font-black italic">
-                    <div className={b.status === 'confirmed' ? 'text-[#4ADE80]' : b.status === 'cancelled' ? 'text-red-500' : 'text-[#FDE047]'}>
-                      <span className="animate-pulse mr-1">●</span> {b.status}
-                    </div>
-                  </td>
-                  <td className="p-4 text-right">
-                    <div className="flex justify-end gap-3 opacity-0 group-hover:opacity-100 transition-opacity">
-                      {isUpdating === b.id ? <Loader2 className="animate-spin text-white" size={20} /> : (
-                          <>
-                          <button onClick={() => updateStatus(b.id, 'confirmed')} className="text-[#4ADE80] hover:scale-125 transition-transform" title="Confirm"><CheckCircle size={22}/></button>
-                          <button onClick={() => confirmToWA(b)} className="text-[#25D366] hover:scale-125 transition-transform" title="Send WA"><MessageCircle size={22}/></button>
-                          <button onClick={() => deleteSingle(b.id)} className="text-red-500 hover:scale-125 transition-transform" title="Delete"><Trash2 size={22}/></button>
-                          </>
-                      )}
-                    </div>
-                  </td>
-                </tr>
-              )
+            {bookings
+              .filter(b => b.user_name.toLowerCase().includes(searchTerm.toLowerCase()))
+              .map((b) => {
+                const isFutsal = b.courts?.name.includes('FUTSAL');
+                return (
+                  <tr key={b.id} className={`border-b border-slate-800 transition-colors group ${isFutsal ? 'hover:bg-yellow-400/5' : 'hover:bg-blue-400/5'}`}>
+                    <td className="p-4 text-white font-black uppercase tracking-tight">
+                        <span className={isFutsal ? 'text-[#FDE047]' : 'text-[#38BDF8]'}>{b.user_name}</span>
+                        <div className="text-[10px] text-slate-500 font-mono mt-1 uppercase italic">{b.booking_date} | {b.start_time.substring(0,5)} WIB</div>
+                    </td>
+                    <td className="p-4 uppercase">
+                      <span className={`px-3 py-1 text-[10px] rounded-full border-2 font-black shadow-sm ${isFutsal ? 'text-[#FDE047] border-[#FDE047] bg-[#FDE047]/10' : 'text-[#38BDF8] border-[#38BDF8] bg-[#38BDF8]/10'}`}>
+                        {b.courts?.name}
+                      </span>
+                    </td>
+                    <td className="p-4 text-center">
+                      <a href={b.receipt_url} target="_blank" className="text-slate-400 hover:text-white text-[10px] font-black uppercase italic underline decoration-[#F472B6]">VIEW PROOF</a>
+                    </td>
+                    <td className="p-4 uppercase text-[10px] font-black italic">
+                      <div className={b.status === 'confirmed' ? 'text-[#4ADE80]' : b.status === 'cancelled' ? 'text-red-500' : 'text-[#FDE047]'}>
+                        <span className="animate-pulse mr-1">●</span> {b.status}
+                      </div>
+                    </td>
+                    <td className="p-4 text-right">
+                      <div className="flex justify-end gap-3 opacity-0 group-hover:opacity-100 transition-opacity">
+                        {isUpdating === b.id ? <Loader2 className="animate-spin text-white" size={20} /> : (
+                            <>
+                            <button onClick={() => updateStatus(b.id, 'confirmed')} className="text-[#4ADE80] hover:scale-125 transition-transform" title="Confirm"><CheckCircle size={22}/></button>
+                            <button onClick={() => confirmToWA(b)} className="text-[#25D366] hover:scale-125 transition-transform" title="Send WA"><MessageCircle size={22}/></button>
+                            <button onClick={() => deleteSingle(b.id)} className="text-red-500 hover:scale-125 transition-transform" title="Delete"><Trash2 size={22}/></button>
+                            </>
+                        )}
+                      </div>
+                    </td>
+                  </tr>
+                )
             })}
           </tbody>
         </table>
@@ -220,7 +238,7 @@ const AdminDashboard = () => {
 
       <section className="bg-[#1E293B] border-2 border-slate-700 p-8 shadow-xl mb-10 italic relative overflow-hidden">
         <div className="absolute top-0 right-0 p-4 opacity-10 text-white">
-           <BarChart3 size={120} />
+            <BarChart3 size={120} />
         </div>
         <div className="flex items-center gap-3 mb-8 border-b-2 border-slate-700 pb-4 uppercase relative z-10">
             <TrendingUp className="text-[#4ADE80]" size={28} />
